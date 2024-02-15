@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import css from "./App.module.css";
 import { Searchbar } from "./Searchbar/Searchbar";
@@ -7,6 +7,7 @@ import { ImageGallery } from "./ImageGallery/ImageGallery";
 import { NoResults } from "./NoResult/NoResults";
 import { Button } from "./Button/Button";
 import { Modal } from "./Modal/Modal";
+import { Error } from "./Error/Error";
 
 export const App = () => {
   const [images, setImages] = useState([]);
@@ -28,29 +29,6 @@ export const App = () => {
       setImages([]);
       setCurrentPage(1);
       setSearchQuery(queryString);
-    }
-  }
-
-  const fetchImages = async (searchQuery, currentPage) => {
-    axios.defaults.baseURL = "https://pixabay.com/api/";
-    const key = "6950737-29a0d5130824bfea54194711c";
-    setIsLoading(true);
-    const url = `?q=${searchQuery}&page=${currentPage}&key=${key}&safesearch=true&image_type=photo&orientation=horizontal&per_page=12`;
-    const response = await axios.get(url);
-    return response;
-  }
-
-  const addImages = async () => {
-    try {
-      const { data } = await fetchImages(searchQuery, currentPage);
-      const noResults = data.totalHits === 0;
-      setImages((prev) => [...prev, ...data.hits]);
-      setTotalPages(Math.ceil(data.totalHits / 12));
-      setNoResults(noResults);
-    } catch (error) {
-      setError(error);
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -82,11 +60,36 @@ export const App = () => {
   }
 
   useEffect(() => {
-    if (searchQuery) {
-      addImages();
+    const fetchImages = async (searchQuery, currentPage) => {
+      axios.defaults.baseURL = "https://pixabay.com/api/";
+      const key = "6950737-29a0d5130824bfea54194711c";
+      setIsLoading(true);
+      const url = `?q=${searchQuery}&page=${currentPage}&key=${key}&safesearch=true&image_type=photo&orientation=horizontal&per_page=12`;
+      const response = await axios.get(url);
+      return response;
     }
+
+    const addImages = async () => {
+      try {
+        const { data } = await fetchImages(searchQuery, currentPage);
+        const noResults = data.totalHits === 0;
+        setImages((prev) => [...prev, ...data.hits]);
+        setTotalPages(Math.ceil(data.totalHits / 12));
+        setNoResults(noResults);
+      } catch (error) {
+        setError(error);
+        console.log(error.message)
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (searchQuery) addImages()
   }, [searchQuery, currentPage]);
   
+  if (error) {
+      return (<Error errorMessage={error.message} />);
+  }
 
   return (
     <div className={css.App}>
