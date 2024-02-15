@@ -1,4 +1,3 @@
-import React, { Component } from "react";
 import { Oval } from "react-loader-spinner";
 import css from "./Loader.module.css";
 
