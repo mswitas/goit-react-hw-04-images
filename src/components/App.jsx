@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import css from "./App.module.css";
 import { Searchbar } from "./Searchbar/Searchbar";
 import { Loader } from "./Loader/Loader";
@@ -8,6 +7,7 @@ import { NoResults } from "./NoResult/NoResults";
 import { Button } from "./Button/Button";
 import { Modal } from "./Modal/Modal";
 import { Error } from "./Error/Error";
+import { fetchImages } from "services/pixabayAPI";
 
 export const App = () => {
   const [images, setImages] = useState([]);
@@ -60,17 +60,9 @@ export const App = () => {
   }
 
   useEffect(() => {
-    const fetchImages = async (searchQuery, currentPage) => {
-      axios.defaults.baseURL = "https://pixabay.com/api/";
-      const key = "6950737-29a0d5130824bfea54194711c";
-      setIsLoading(true);
-      const url = `?q=${searchQuery}&page=${currentPage}&key=${key}&safesearch=true&image_type=photo&orientation=horizontal&per_page=12`;
-      const response = await axios.get(url);
-      return response;
-    }
-
-    const addImages = async () => {
-      try {
+     const addImages = async () => {
+       try {
+        setIsLoading(true);
         const { data } = await fetchImages(searchQuery, currentPage);
         const noResults = data.totalHits === 0;
         setImages((prev) => [...prev, ...data.hits]);
